@@ -12,9 +12,14 @@ namespace OpenApiParser
         {
             const string OpenApiSpecBasePath = @"C:\OpenAPI\";
             const string OutFileName = "outfile.csv";
+            const string ExcludeString = "ApiResults";
 
             var specFiles = Directory.GetFiles(OpenApiSpecBasePath, "*", SearchOption.AllDirectories)
-                .Where(f => (new[] { ".json", ".yaml" }).Contains(Path.GetExtension(f)));
+                .Where(f => (new[] { ".json", ".yaml" }).Contains(Path.GetExtension(f)))
+                .Where(f => !f.Contains(ExcludeString))
+                .ToArray();
+
+            Console.WriteLine($"Discovered {specFiles.Length} files...");
 
             using var csvFile = File.CreateText(Path.Combine(OpenApiSpecBasePath, OutFileName));
 
@@ -40,6 +45,7 @@ namespace OpenApiParser
                     ProductName = fileInfo.Directory.Name,
                     SpecFile = fileInfo.Name,
                     Path = path.Key,
+                    Operation = path.Value.Operations.First().Key.ToString().ToUpper()
                 })
                 .Distinct();
 
@@ -48,6 +54,7 @@ namespace OpenApiParser
                 csvFile.Write($"{api.ProductName},");
                 csvFile.Write($"{api.SpecFile},");
                 csvFile.Write($"{api.Path},");
+                csvFile.Write($"{api.Operation},");
                 csvFile.Write($"{openApiDocument.Info.Title},");
                 csvFile.Write($"\"{openApiDocument.Info.Description}\",");
                 csvFile.Write($"{openApiDocument.Info.Version},");
@@ -60,6 +67,7 @@ namespace OpenApiParser
             csvFile.Write("Product Name,");
             csvFile.Write("Spec File,");
             csvFile.Write("Path,");
+            csvFile.Write("Operation,");
             csvFile.Write("Title,");
             csvFile.Write("Description,");
             csvFile.Write("Version,");
